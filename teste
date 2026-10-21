@@ -1,1163 +1,1289 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Heart, MessageCircle, Send, Bookmark, Home, Film, ShoppingBag, 
-  User, PlusSquare, Play, Volume2, VolumeX, CheckCircle, Flame, 
-  Dumbbell, Droplets, Calendar, Award, Lock, Sparkles, ChevronLeft, 
-  ChevronRight, X, ExternalLink, Check, ShoppingCart, Radio, Shield, 
-  Share2, Eye, FastForward, Users, ArrowRight
-} from 'lucide-react';
-
-// --- MOCK DATA BASED ON MARI MARQUES & TRINKADAS PDF ---
-const INFLUENCER_PROFILE = {
-  username: "mari.marques_",
-  name: "Mari Marques | Fit & Routine",
-  avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-  bio: "✨ Criadora do Projeto TRINKADAS 💖\n🏋️‍♀️ Treinos, rotina & constância sem neura\n👇 Garanta sua vaga no desafio de 15 dias!",
-  followers: "128K",
-  following: "412",
-  postsCount: "342",
-  isVerified: true
-};
-
-const INITIAL_PROJECT = {
-  id: "trinkadas-15d",
-  title: "Projeto TRINKADAS - 15 Dias",
-  subtitle: "15 dias para transformar sua rotina e construir constância de verdade",
-  author: "Mari Marques",
-  price: 49.90,
-  totalSlots: 50,
-  availableSlots: 14,
-  coverImage: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
-  startDate: "15 de Abril",
-  features: [
-    { title: "Acompanhamento no WhatsApp", desc: "Grupo exclusivo direto com a Mari Marques para motivação e suporte diário." },
-    { title: "Planilha de Treinos Completa", desc: "Foco em membros Superiores, Inferiores e Abdominal adaptado para academia." },
-    { title: "Planilha de Corrida & Cardio", desc: "Guias estruturados para nível Iniciante e Intermediário." },
-    { title: "6 Cardápios Base", desc: "Guias práticos para organização alimentar leve e possível sem restrições loucas." },
-    { title: "Mini Desafios Diários", desc: "Metas diárias de água, treino de abdômen e rotina." },
-    { title: "Premiação Exclusiva", desc: "Premiação no final do desafio para as alunas mais engajadas." }
-  ],
-  forWho: [
-    "Pra quem já tentou várias vezes e não conseguiu manter",
-    "Pra quem quer criar uma rotina de treino de verdade",
-    "Pra quem busca mais autoestima e constância física",
-    "Pra quem quer se sentir bem e confiante no próprio corpo"
-  ],
-  notForWho: [
-    "Pra quem busca resultados milagrosos da noite para o dia",
-    "Pra quem não quer se comprometer com a própria rotina",
-    "Pra quem espera ter motivação todos os dias para treinar"
-  ],
-  dailyChallenges: [
-    "30 min de cardio diário",
-    "Pelo menos 2,5L de água por dia",
-    "1 refeição livre por semana",
-    "Não pular o treino de abdômen"
-  ]
-};
-
-const INITIAL_STORIES = [
-  {
-    id: 1,
-    username: "mari.marques_",
-    userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    hasUnseen: true,
-    isLive: false,
-    media: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
-    caption: "Bom dia meninas! Hoje o treino de pernas foi INSANO 🔥 Prontas pros 15 dias?",
-    time: "2h"
-  },
-  {
-    id: 2,
-    username: "TRINKADAS LIVE",
-    userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    hasUnseen: true,
-    isLive: true,
-    media: "",
-    caption: "AO VIVO: Tirando dúvidas sobre o Projeto Trinkadas!",
-    time: "AO VIVO"
-  },
-  {
-    id: 3,
-    username: "Resultados",
-    userAvatar: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80",
-    hasUnseen: false,
-    isLive: false,
-    media: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    caption: "Evolução incrível das alunas na última edição! 💥💖",
-    time: "5h"
-  }
-];
-
-const INITIAL_POSTS = [
-  {
-    id: 101,
-    author: "mari.marques_",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=80"
-    ],
-    likes: 1420,
-    isLiked: false,
-    caption: "O Projeto Trinkadas nasceu da minha própria rotina! Não é sobre perfeição, é sobre constância e disciplina por 15 dias. Quem vem comigo na nova turma? Vagas super limitadas! Link no perfil 💕🏋️‍♀️",
-    timeAgo: "3 horas atrás",
-    comments: [
-      { user: "carol_fit", text: "Já garanti minha vaga!! Ansiosa demais 😍" },
-      { user: "amanda.personaltrainer", text: "Proposta sensacional Mari, parabéns!!" }
-    ]
-  },
-  {
-    id: 102,
-    author: "mari.marques_",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1000&q=80"
-    ],
-    likes: 2890,
-    isLiked: true,
-    caption: "30 min de cardio + 2,5L de água no dia concluídos! O segredo é fazer o básico bem feito todos os dias. Marca aqui aquela amiga que vai fazer o Trinkadas com você! 👇",
-    timeAgo: "1 dia atrás",
-    comments: [
-      { user: "beatriz_lima", text: "@juliana_santos vamos fazer juntas!!" },
-      { user: "juliana_santos", text: "@beatriz_lima BORA! Compra logo a nossa vaga haha" }
-    ]
-  }
-];
-
-const INITIAL_REELS = [
-  {
-    id: 201,
-    author: "mari.marques_",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    videoBg: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80",
-    song: "Mari Marques - Foco & Constância (Audio Oficial)",
-    caption: "Treino B - Membros Inferiores focado em Quadríceps! Salva esse vídeo pra fazer na academia 🍑🔥 #Trinkadas #FitnessFeminino",
-    likes: "12.4K",
-    isLiked: false,
-    commentsCount: "342"
-  },
-  {
-    id: 202,
-    author: "mari.marques_",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    videoBg: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    song: "Gym Motivation Women - EDM Mix",
-    caption: "Se você esperar a motivação vir pra treinar, você nunca vai ter constância. Faça até sem vontade! 💪✨",
-    likes: "28.9K",
-    isLiked: true,
-    commentsCount: "890"
-  }
-];
-
-export default function App() {
-  // Navigation State
-  const [activeTab, setActiveTab] = useState('feed'); // feed, reels, marketplace, live, profile
-  const [isInfluencerMode, setIsInfluencerMode] = useState(false); // Toggle creator vs user view
-
-  // App Data States
-  const [posts, setPosts] = useState(INITIAL_POSTS);
-  const [stories, setStories] = useState(INITIAL_STORIES);
-  const [reels, setReels] = useState(INITIAL_REELS);
-  const [projectData, setProjectData] = useState(INITIAL_PROJECT);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRINKADAS FIT APP</title>
   
-  // Interaction & Modals States
-  const [activeStoryIndex, setActiveStoryIndex] = useState(null);
-  const [isLiveActive, setIsLiveActive] = useState(false);
-  const [liveComments, setLiveComments] = useState([
-    { id: 1, user: "camila_m", text: "Mari, o treino de corrida serve pra quem é zero iniciante?" },
-    { id: 2, user: "renata.fit", text: "Melhor investimento que já fiz no ano passado! ❤️" },
-    { id: 3, user: "larissa_g", text: "Ainda tem vaga no WhatsApp??" },
-  ]);
-  const [liveHearts, setLiveHearts] = useState([]);
-  const [newLiveCommentText, setNewLiveCommentText] = useState("");
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & React DOM CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone CDN to compile JSX in browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* Hide scrollbars for clean UI */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 font-sans antialiased">
+  <div id="root"></div>
 
-  // New Post/Story Modal for Influencer
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createType, setCreateType] = useState('post'); // 'post' or 'story'
-  const [newPostCaption, setNewPostCaption] = useState('');
-  const [newPostImageUrl, setNewPostImageUrl] = useState('');
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-  // Checkout / Member Area
-  const [hasPurchased, setHasPurchased] = useState(false);
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [paymentStep, setPaymentStep] = useState(1); // 1: form, 2: success
-
-  // Sound toggle for Reels
-  const [isMuted, setIsMuted] = useState(true);
-
-  // --- ACTIONS & HANDLERS ---
-
-  // Like Post
-  const toggleLikePost = (postId) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          isLiked: !post.isLiked,
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1
-        };
-      }
-      return post;
-    }));
-  };
-
-  // Add Comment to Post
-  const handleAddComment = (postId, commentText) => {
-    if (!commentText.trim()) return;
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [...post.comments, { user: isInfluencerMode ? "mari.marques_" : "sua_conta_aluna", text: commentText }]
-        };
-      }
-      return post;
-    }));
-  };
-
-  // Create Post or Story (Influencer feature)
-  const handleCreateContent = (e) => {
-    e.preventDefault();
-    const defaultImg = newPostImageUrl.trim() || "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80";
-
-    if (createType === 'post') {
-      const newPostObj = {
-        id: Date.now(),
-        author: "mari.marques_",
-        avatar: INFLUENCER_PROFILE.avatar,
-        images: [defaultImg],
-        likes: 1,
-        isLiked: true,
-        caption: newPostCaption,
-        timeAgo: "Agora mesmo",
-        comments: []
+    // --- LUCIDE ICON HELPER COMPONENT FOR INLINE RUNTIME RENDER ---
+    const Icon = ({ name, className = "w-5 h-5", ...props }) => {
+      // SVG paths map for icons used in the app
+      const iconPaths = {
+        Heart: <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />,
+        MessageCircle: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />,
+        Send: <> <path d="m22 2-7 20-4-9-9-4Z" /> <path d="M22 2 11 13" /> </>,
+        Bookmark: <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />,
+        Home: <> <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> </>,
+        Film: <> <rect width="18" height="18" x="3" y="3" rx="2" /> <path d="M7 3v18" /> <path d="M3 7.5h4" /> <path d="M3 12h18" /> <path d="M3 16.5h4" /> <path d="M17 3v18" /> <path d="M17 7.5h4" /> <path d="M17 16.5h4" /> </>,
+        ShoppingBag: <> <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /> <path d="M3 6h18" /> <path d="M16 10a4 4 0 0 1-8 0" /> </>,
+        User: <> <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /> </>,
+        PlusSquare: <> <rect width="18" height="18" x="3" y="3" rx="2" /> <path d="M8 12h8" /> <path d="M12 8v8" /> </>,
+        Play: <polygon points="6 3 20 12 6 21 6 3" />,
+        Volume2: <> <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /> <path d="M15.54 8.46a5 5 0 0 1 0 7.07" /> <path d="M19.07 4.93a10 10 0 0 1 0 14.14" /> </>,
+        VolumeX: <> <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /> <line x1="22" x2="16" y1="9" y2="15" /> <line x1="16" x2="22" y1="9" y2="15" /> </>,
+        CheckCircle: <> <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /> <path d="m9 11 3 3L22 4" /> </>,
+        Flame: <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />,
+        Dumbbell: <> <path d="m6.5 6.5 11 11" /> <path d="m21 21-1-1" /> <path d="m3 3 1 1" /> <path d="m18 22 4-4" /> <path d="m2 6 4-4" /> <path d="m3 10 7-7" /> <path d="m14 21 7-7" /> </>,
+        Droplets: <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.83-2.29 3.76S3 11.09 3 12.25c0 2.22 1.8 4.05 4 4.05z" />,
+        Calendar: <> <rect width="18" height="18" x="3" y="4" rx="2" /> <path d="M16 2v4" /> <path d="M8 2v4" /> <path d="M3 10h18" /> </>,
+        Award: <> <circle cx="12" cy="8" r="6" /> <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" /> </>,
+        Lock: <> <rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 10 0v4" /> </>,
+        Sparkles: <> <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /> </>,
+        ChevronLeft: <path d="m15 18-6-6 6-6" />,
+        ChevronRight: <path d="m9 18 6-6-6-6" />,
+        X: <> <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </>,
+        ExternalLink: <> <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </>,
+        Check: <path d="m5 12 5 5L20 7" />,
+        ShoppingCart: <> <circle cx="8" cy="21" r="1" /> <circle cx="19" cy="21" r="1" /> <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /> </>,
+        Radio: <> <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" /> <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" /> <circle cx="12" cy="12" r="2" /> <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" /> <path d="M19.1 4.9c3.9 3.9 3.9 10.3 0 14.2" /> </>,
+        Shield: <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />,
+        Share2: <> <circle cx="18" cy="5" r="3" /> <circle cx="6" cy="12" r="3" /> <circle cx="18" cy="19" r="3" /> <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" /> <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" /> </>,
+        Eye: <> <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /> <circle cx="12" cy="12" r="3" /> </>,
+        FastForward: <> <polygon points="13 19 22 12 13 5 13 19" /> <polygon points="2 19 11 12 2 5 2 19" /> </>,
+        Users: <> <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /> </>,
+        ArrowRight: <> <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </>
       };
-      setPosts([newPostObj, ...posts]);
-    } else {
-      const newStoryObj = {
-        id: Date.now(),
+
+      return (
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={`inline-block ${className}`}
+          {...props}
+        >
+          {iconPaths[name] || null}
+        </svg>
+      );
+    };
+
+    // Icon Shortcuts
+    const Heart = (p) => <Icon name="Heart" {...p} />;
+    const MessageCircle = (p) => <Icon name="MessageCircle" {...p} />;
+    const Send = (p) => <Icon name="Send" {...p} />;
+    const Bookmark = (p) => <Icon name="Bookmark" {...p} />;
+    const Home = (p) => <Icon name="Home" {...p} />;
+    const Film = (p) => <Icon name="Film" {...p} />;
+    const ShoppingBag = (p) => <Icon name="ShoppingBag" {...p} />;
+    const User = (p) => <Icon name="User" {...p} />;
+    const PlusSquare = (p) => <Icon name="PlusSquare" {...p} />;
+    const Play = (p) => <Icon name="Play" {...p} />;
+    const Volume2 = (p) => <Icon name="Volume2" {...p} />;
+    const VolumeX = (p) => <Icon name="VolumeX" {...p} />;
+    const CheckCircle = (p) => <Icon name="CheckCircle" {...p} />;
+    const Flame = (p) => <Icon name="Flame" {...p} />;
+    const Dumbbell = (p) => <Icon name="Dumbbell" {...p} />;
+    const Droplets = (p) => <Icon name="Droplets" {...p} />;
+    const Calendar = (p) => <Icon name="Calendar" {...p} />;
+    const Award = (p) => <Icon name="Award" {...p} />;
+    const Lock = (p) => <Icon name="Lock" {...p} />;
+    const Sparkles = (p) => <Icon name="Sparkles" {...p} />;
+    const ChevronLeft = (p) => <Icon name="ChevronLeft" {...p} />;
+    const ChevronRight = (p) => <Icon name="ChevronRight" {...p} />;
+    const X = (p) => <Icon name="X" {...p} />;
+    const ExternalLink = (p) => <Icon name="ExternalLink" {...p} />;
+    const Check = (p) => <Icon name="Check" {...p} />;
+    const ShoppingCart = (p) => <Icon name="ShoppingCart" {...p} />;
+    const Radio = (p) => <Icon name="Radio" {...p} />;
+    const Shield = (p) => <Icon name="Shield" {...p} />;
+    const Share2 = (p) => <Icon name="Share2" {...p} />;
+    const Eye = (p) => <Icon name="Eye" {...p} />;
+    const FastForward = (p) => <Icon name="FastForward" {...p} />;
+    const Users = (p) => <Icon name="Users" {...p} />;
+    const ArrowRight = (p) => <Icon name="ArrowRight" {...p} />;
+
+    // --- MOCK DATA BASED ON MARI MARQUES & TRINKADAS PDF ---
+    const INFLUENCER_PROFILE = {
+      username: "mari.marques_",
+      name: "Mari Marques | Fit & Routine",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      bio: "✨ Criadora do Projeto TRINKADAS 💖\n🏋️‍♀️ Treinos, rotina & constância sem neura\n👇 Garanta sua vaga no desafio de 15 dias!",
+      followers: "128K",
+      following: "412",
+      postsCount: "342",
+      isVerified: true
+    };
+
+    const INITIAL_PROJECT = {
+      id: "trinkadas-15d",
+      title: "Projeto TRINKADAS - 15 Dias",
+      subtitle: "15 dias para transformar sua rotina e construir constância de verdade",
+      author: "Mari Marques",
+      price: 49.90,
+      totalSlots: 50,
+      availableSlots: 14,
+      coverImage: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
+      startDate: "15 de Abril",
+      features: [
+        { title: "Acompanhamento no WhatsApp", desc: "Grupo exclusivo direto com a Mari Marques para motivação e suporte diário." },
+        { title: "Planilha de Treinos Completa", desc: "Foco em membros Superiores, Inferiores e Abdominal adaptado para academia." },
+        { title: "Planilha de Corrida & Cardio", desc: "Guias estruturados para nível Iniciante e Intermediário." },
+        { title: "6 Cardápios Base", desc: "Guias práticos para organização alimentar leve e possível sem restrições loucas." },
+        { title: "Mini Desafios Diários", desc: "Metas diárias de água, treino de abdômen e rotina." },
+        { title: "Premiação Exclusiva", desc: "Premiação no final do desafio para as alunas mais engajadas." }
+      ],
+      forWho: [
+        "Pra quem já tentou várias vezes e não conseguiu manter",
+        "Pra quem quer criar uma rotina de treino de verdade",
+        "Pra quem busca mais autoestima e constância física",
+        "Pra quem quer se sentir bem e confiante no próprio corpo"
+      ],
+      notForWho: [
+        "Pra quem busca resultados milagrosos da noite para o dia",
+        "Pra quem não quer se comprometer com a própria rotina",
+        "Pra quem espera ter motivação todos os dias para treinar"
+      ],
+      dailyChallenges: [
+        "30 min de cardio diário",
+        "Pelo menos 2,5L de água por dia",
+        "1 refeição livre por semana",
+        "Não pular o treino de abdômen"
+      ]
+    };
+
+    const INITIAL_STORIES = [
+      {
+        id: 1,
         username: "mari.marques_",
-        userAvatar: INFLUENCER_PROFILE.avatar,
+        userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
         hasUnseen: true,
         isLive: false,
-        media: defaultImg,
-        caption: newPostCaption || "Novo update do dia! ✨",
-        time: "Agora"
-      };
-      setStories([stories[0], newStoryObj, ...stories.slice(1)]);
-    }
-
-    setNewPostCaption('');
-    setNewPostImageUrl('');
-    setShowCreateModal(false);
-  };
-
-  // Send Live Reaction/Heart
-  const sendLiveHeart = () => {
-    const newHeart = {
-      id: Date.now(),
-      left: Math.floor(Math.random() * 60) + 20, // percentage position
-      size: Math.floor(Math.random() * 16) + 20
-    };
-    setLiveHearts(prev => [...prev, newHeart]);
-    setTimeout(() => {
-      setLiveHearts(prev => prev.filter(h => h.id !== newHeart.id));
-    }, 2000);
-  };
-
-  // Add Live Comment
-  const handleSendLiveComment = (e) => {
-    e.preventDefault();
-    if (!newLiveCommentText.trim()) return;
-    setLiveComments(prev => [
-      ...prev,
+        media: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
+        caption: "Bom dia meninas! Hoje o treino de pernas foi INSANO 🔥 Prontas pros 15 dias?",
+        time: "2h"
+      },
       {
-        id: Date.now(),
-        user: isInfluencerMode ? "mari.marques_ (LIVE)" : "aluna_dedicada",
-        text: newLiveCommentText
+        id: 2,
+        username: "TRINKADAS LIVE",
+        userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        hasUnseen: true,
+        isLive: true,
+        media: "",
+        caption: "AO VIVO: Tirando dúvidas sobre o Projeto Trinkadas!",
+        time: "AO VIVO"
+      },
+      {
+        id: 3,
+        username: "Resultados",
+        userAvatar: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=400&q=80",
+        hasUnseen: false,
+        isLive: false,
+        media: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
+        caption: "Evolução incrível das alunas na última edição! 💥💖",
+        time: "5h"
       }
-    ]);
-    setNewLiveCommentText("");
-    sendLiveHeart();
-  };
+    ];
 
-  // Purchase Simulation
-  const handleCompletePurchase = () => {
-    setPaymentStep(2);
-    setTimeout(() => {
-      setHasPurchased(true);
-      setShowCheckoutModal(false);
-      setProjectData(prev => ({
-        ...prev,
-        availableSlots: Math.max(0, prev.availableSlots - 1)
-      }));
-    }, 1500);
-  };
+    const INITIAL_POSTS = [
+      {
+        id: 101,
+        author: "mari.marques_",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        images: [
+          "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80",
+          "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=80"
+        ],
+        likes: 1420,
+        isLiked: false,
+        caption: "O Projeto Trinkadas nasceu da minha própria rotina! Não é sobre perfeição, é sobre constância e disciplina por 15 dias. Quem vem comigo na nova turma? Vagas super limitadas! Link no perfil 💕🏋️‍♀️",
+        timeAgo: "3 horas atrás",
+        comments: [
+          { user: "carol_fit", text: "Já garanti minha vaga!! Ansiosa demais 😍" },
+          { user: "amanda.personaltrainer", text: "Proposta sensacional Mari, parabéns!!" }
+        ]
+      },
+      {
+        id: 102,
+        author: "mari.marques_",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        images: [
+          "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1000&q=80"
+        ],
+        likes: 2890,
+        isLiked: true,
+        caption: "30 min de cardio + 2,5L de água no dia concluídos! O segredo é fazer o básico bem feito todos os dias. Marca aqui aquela amiga que vai fazer o Trinkadas com você! 👇",
+        timeAgo: "1 dia atrás",
+        comments: [
+          { user: "beatriz_lima", text: "@juliana_santos vamos fazer juntas!!" },
+          { user: "juliana_santos", text: "@beatriz_lima BORA! Compra logo a nossa vaga haha" }
+        ]
+      }
+    ];
 
-  return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex flex-col justify-between max-w-md mx-auto shadow-2xl relative border-x border-neutral-800">
+    const INITIAL_REELS = [
+      {
+        id: 201,
+        author: "mari.marques_",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        videoBg: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80",
+        song: "Mari Marques - Foco & Constância (Audio Oficial)",
+        caption: "Treino B - Membros Inferiores focado em Quadríceps! Salva esse vídeo pra fazer na academia 🍑🔥 #Trinkadas #FitnessFeminino",
+        likes: "12.4K",
+        isLiked: false,
+        commentsCount: "342"
+      },
+      {
+        id: 202,
+        author: "mari.marques_",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        videoBg: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
+        song: "Gym Motivation Women - EDM Mix",
+        caption: "Se você esperar a motivação vir pra treinar, você nunca vai ter constância. Faça até sem vontade! 💪✨",
+        likes: "28.9K",
+        isLiked: true,
+        commentsCount: "890"
+      }
+    ];
+
+    function App() {
+      // Navigation State
+      const [activeTab, setActiveTab] = useState('feed'); // feed, reels, marketplace, live, profile
+      const [isInfluencerMode, setIsInfluencerMode] = useState(false); // Toggle creator vs user view
+
+      // App Data States
+      const [posts, setPosts] = useState(INITIAL_POSTS);
+      const [stories, setStories] = useState(INITIAL_STORIES);
+      const [reels, setReels] = useState(INITIAL_REELS);
+      const [projectData, setProjectData] = useState(INITIAL_PROJECT);
       
-      {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-30 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800/80 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-extrabold tracking-wider text-lg bg-gradient-to-r from-pink-500 via-rose-400 to-amber-300 bg-clip-text text-transparent uppercase">
-            TRINKADAS
-          </span>
-          <span className="text-xs bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded-full font-medium border border-pink-500/20">
-            FIT APP
-          </span>
-        </div>
+      // Interaction & Modals States
+      const [activeStoryIndex, setActiveStoryIndex] = useState(null);
+      const [isLiveActive, setIsLiveActive] = useState(false);
+      const [liveComments, setLiveComments] = useState([
+        { id: 1, user: "camila_m", text: "Mari, o treino de corrida serve pra quem é zero iniciante?" },
+        { id: 2, user: "renata.fit", text: "Melhor investimento que já fiz no ano passado! ❤️" },
+        { id: 3, user: "larissa_g", text: "Ainda tem vaga no WhatsApp??" },
+      ]);
+      const [liveHearts, setLiveHearts] = useState([]);
+      const [newLiveCommentText, setNewLiveCommentText] = useState("");
 
-        {/* Influencer Profile Switcher & Notifications */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsInfluencerMode(!isInfluencerMode)}
-            className={`text-xs px-2.5 py-1.5 rounded-full font-semibold transition-all duration-200 flex items-center gap-1.5 ${
-              isInfluencerMode 
-                ? 'bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-pink-500/25 ring-2 ring-pink-400' 
-                : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-            }`}
-            title="Alternar entre visão da Criadora (Mari Marques) e da Aluna"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            {isInfluencerMode ? 'Modo Mari Marques' : 'Modo Aluna'}
-          </button>
+      // New Post/Story Modal for Influencer
+      const [showCreateModal, setShowCreateModal] = useState(false);
+      const [createType, setCreateType] = useState('post'); // 'post' or 'story'
+      const [newPostCaption, setNewPostCaption] = useState('');
+      const [newPostImageUrl, setNewPostImageUrl] = useState('');
 
-          {isInfluencerMode && (
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-pink-400 rounded-full transition"
-            >
-              <PlusSquare className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-      </header>
+      // Checkout / Member Area
+      const [hasPurchased, setHasPurchased] = useState(false);
+      const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+      const [paymentStep, setPaymentStep] = useState(1); // 1: form, 2: success
 
-      {/* ================= MAIN CONTENT AREA ================= */}
-      <main className="flex-1 overflow-y-auto pb-20">
+      // Sound toggle for Reels
+      const [isMuted, setIsMuted] = useState(true);
 
-        {/* ---------------- 1. FEED TAB ---------------- */}
-        {activeTab === 'feed' && (
-          <div className="space-y-4">
-            
-            {/* STORIES CAROUSEL */}
-            <div className="py-3 px-3 border-b border-neutral-800/60 overflow-x-auto no-scrollbar flex items-center gap-3.5 bg-neutral-900/40">
-              
-              {/* Creator Add Story Button */}
-              {isInfluencerMode && (
-                <div 
-                  onClick={() => { setCreateType('story'); setShowCreateModal(true); }}
-                  className="flex flex-col items-center gap-1 cursor-pointer min-w-[68px]"
-                >
-                  <div className="relative w-16 h-16 rounded-full border-2 border-dashed border-pink-500 flex items-center justify-center bg-pink-500/10">
-                    <PlusSquare className="w-7 h-7 text-pink-400" />
-                  </div>
-                  <span className="text-[11px] text-neutral-300 font-medium truncate max-w-[68px]">Novo Story</span>
-                </div>
-              )}
+      // --- ACTIONS & HANDLERS ---
 
-              {/* Story Bubbles */}
-              {stories.map((story, idx) => (
-                <div 
-                  key={story.id} 
-                  onClick={() => {
-                    if (story.isLive) {
-                      setActiveTab('live');
-                      setIsLiveActive(true);
-                    } else {
-                      setActiveStoryIndex(idx);
-                    }
-                  }}
-                  className="flex flex-col items-center gap-1 cursor-pointer min-w-[68px]"
-                >
-                  <div className={`relative p-[2px] rounded-full ${
-                    story.isLive 
-                      ? 'bg-gradient-to-tr from-rose-600 via-pink-500 to-amber-400 animate-pulse' 
-                      : story.hasUnseen 
-                      ? 'bg-gradient-to-tr from-amber-400 via-pink-500 to-rose-600' 
-                      : 'bg-neutral-700'
-                  }`}>
-                    <img 
-                      src={story.userAvatar} 
-                      alt={story.username}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-neutral-950"
-                    />
-                    {story.isLive && (
-                      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white font-extrabold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wider">
-                        LIVE
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-neutral-300 font-medium truncate max-w-[68px]">
-                    {story.username}
-                  </span>
-                </div>
-              ))}
+      // Like Post
+      const toggleLikePost = (postId) => {
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: !post.isLiked,
+              likes: post.isLiked ? post.likes - 1 : post.likes + 1
+            };
+          }
+          return post;
+        }));
+      };
+
+      // Add Comment to Post
+      const handleAddComment = (postId, commentText) => {
+        if (!commentText.trim()) return;
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, { user: isInfluencerMode ? "mari.marques_" : "sua_conta_aluna", text: commentText }]
+            };
+          }
+          return post;
+        }));
+      };
+
+      // Create Post or Story (Influencer feature)
+      const handleCreateContent = (e) => {
+        e.preventDefault();
+        const defaultImg = newPostImageUrl.trim() || "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80";
+
+        if (createType === 'post') {
+          const newPostObj = {
+            id: Date.now(),
+            author: "mari.marques_",
+            avatar: INFLUENCER_PROFILE.avatar,
+            images: [defaultImg],
+            likes: 1,
+            isLiked: true,
+            caption: newPostCaption,
+            timeAgo: "Agora mesmo",
+            comments: []
+          };
+          setPosts([newPostObj, ...posts]);
+        } else {
+          const newStoryObj = {
+            id: Date.now(),
+            username: "mari.marques_",
+            userAvatar: INFLUENCER_PROFILE.avatar,
+            hasUnseen: true,
+            isLive: false,
+            media: defaultImg,
+            caption: newPostCaption || "Novo update do dia! ✨",
+            time: "Agora"
+          };
+          setStories([stories[0], newStoryObj, ...stories.slice(1)]);
+        }
+
+        setNewPostCaption('');
+        setNewPostImageUrl('');
+        setShowCreateModal(false);
+      };
+
+      // Send Live Reaction/Heart
+      const sendLiveHeart = () => {
+        const newHeart = {
+          id: Date.now(),
+          left: Math.floor(Math.random() * 60) + 20, // percentage position
+          size: Math.floor(Math.random() * 16) + 20
+        };
+        setLiveHearts(prev => [...prev, newHeart]);
+        setTimeout(() => {
+          setLiveHearts(prev => prev.filter(h => h.id !== newHeart.id));
+        }, 2000);
+      };
+
+      // Add Live Comment
+      const handleSendLiveComment = (e) => {
+        e.preventDefault();
+        if (!newLiveCommentText.trim()) return;
+        setLiveComments(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            user: isInfluencerMode ? "mari.marques_ (LIVE)" : "aluna_dedicada",
+            text: newLiveCommentText
+          }
+        ]);
+        setNewLiveCommentText("");
+        sendLiveHeart();
+      };
+
+      // Purchase Simulation
+      const handleCompletePurchase = () => {
+        setPaymentStep(2);
+        setTimeout(() => {
+          setHasPurchased(true);
+          setShowCheckoutModal(false);
+          setProjectData(prev => ({
+            ...prev,
+            availableSlots: Math.max(0, prev.availableSlots - 1)
+          }));
+        }, 1500);
+      };
+
+      return (
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans flex flex-col justify-between max-w-md mx-auto shadow-2xl relative border-x border-neutral-800">
+          
+          {/* ================= HEADER ================= */}
+          <header className="sticky top-0 z-30 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800/80 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold tracking-wider text-lg bg-gradient-to-r from-pink-500 via-rose-400 to-amber-300 bg-clip-text text-transparent uppercase">
+                TRINKADAS
+              </span>
+              <span className="text-xs bg-pink-500/10 text-pink-400 px-2 py-0.5 rounded-full font-medium border border-pink-500/20">
+                FIT APP
+              </span>
             </div>
 
-            {/* BANNER PROJETO TRINKADAS RECURSO RAPIDO */}
-            <div className="mx-3 p-3.5 rounded-2xl bg-gradient-to-r from-pink-950/80 via-neutral-900 to-rose-950/60 border border-pink-500/30 flex items-center justify-between shadow-lg">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-pink-400 fill-pink-400" />
-                  <span className="text-xs font-bold text-pink-300 uppercase tracking-wide">Desafio 15 Dias</span>
-                </div>
-                <h3 className="text-sm font-bold text-white">Projeto TRINKADAS</h3>
-                <p className="text-[11px] text-neutral-400">Apenas {projectData.availableSlots} vagas restantes!</p>
-              </div>
+            {/* Influencer Profile Switcher & Notifications */}
+            <div className="flex items-center gap-3">
               <button 
-                onClick={() => setActiveTab('marketplace')}
-                className="bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-md hover:brightness-110 transition flex items-center gap-1"
+                onClick={() => setIsInfluencerMode(!isInfluencerMode)}
+                className={`text-xs px-2.5 py-1.5 rounded-full font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                  isInfluencerMode 
+                    ? 'bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg shadow-pink-500/25 ring-2 ring-pink-400' 
+                    : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                }`}
+                title="Alternar entre visão da Criadora (Mari Marques) e da Aluna"
               >
-                Ver Projeto
-                <ArrowRight className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5" />
+                {isInfluencerMode ? 'Modo Mari Marques' : 'Modo Aluna'}
               </button>
+
+              {isInfluencerMode && (
+                <button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-pink-400 rounded-full transition"
+                >
+                  <PlusSquare className="w-5 h-5" />
+                </button>
+              )}
             </div>
+          </header>
 
-            {/* POSTS FEED */}
-            <div className="space-y-6">
-              {posts.map(post => (
-                <article key={post.id} className="border-b border-neutral-800/60 pb-4">
-                  {/* Post Header */}
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center gap-2.5">
-                      <img 
-                        src={post.avatar} 
-                        alt={post.author} 
-                        className="w-8 h-8 rounded-full object-cover ring-1 ring-pink-500/40"
-                      />
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold text-neutral-100">{post.author}</span>
-                          <CheckCircle className="w-3.5 h-3.5 text-pink-400 fill-pink-400/20" />
-                        </div>
-                        <span className="text-[10px] text-neutral-400">Atleta & Criadora</span>
+          {/* ================= MAIN CONTENT AREA ================= */}
+          <main className="flex-1 overflow-y-auto pb-20">
+
+            {/* ---------------- 1. FEED TAB ---------------- */}
+            {activeTab === 'feed' && (
+              <div className="space-y-4">
+                
+                {/* STORIES CAROUSEL */}
+                <div className="py-3 px-3 border-b border-neutral-800/60 overflow-x-auto no-scrollbar flex items-center gap-3.5 bg-neutral-900/40">
+                  
+                  {/* Creator Add Story Button */}
+                  {isInfluencerMode && (
+                    <div 
+                      onClick={() => { setCreateType('story'); setShowCreateModal(true); }}
+                      className="flex flex-col items-center gap-1 cursor-pointer min-w-[68px]"
+                    >
+                      <div className="relative w-16 h-16 rounded-full border-2 border-dashed border-pink-500 flex items-center justify-center bg-pink-500/10">
+                        <PlusSquare className="w-7 h-7 text-pink-400" />
                       </div>
+                      <span className="text-[11px] text-neutral-300 font-medium truncate max-w-[68px]">Novo Story</span>
                     </div>
-                    <span className="text-[11px] text-neutral-500">{post.timeAgo}</span>
-                  </div>
+                  )}
 
-                  {/* Post Media / Carousel */}
-                  <div className="relative aspect-square bg-neutral-900 overflow-hidden">
-                    <img 
-                      src={post.images[0]} 
-                      alt="Post content" 
-                      className="w-full h-full object-cover"
-                    />
-                    {post.images.length > 1 && (
-                      <span className="absolute top-3 right-3 bg-neutral-950/70 text-neutral-200 text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                        1/{post.images.length}
+                  {/* Story Bubbles */}
+                  {stories.map((story, idx) => (
+                    <div 
+                      key={story.id} 
+                      onClick={() => {
+                        if (story.isLive) {
+                          setActiveTab('live');
+                          setIsLiveActive(true);
+                        } else {
+                          setActiveStoryIndex(idx);
+                        }
+                      }}
+                      className="flex flex-col items-center gap-1 cursor-pointer min-w-[68px]"
+                    >
+                      <div className={`relative p-[2px] rounded-full ${
+                        story.isLive 
+                          ? 'bg-gradient-to-tr from-rose-600 via-pink-500 to-amber-400 animate-pulse' 
+                          : story.hasUnseen 
+                          ? 'bg-gradient-to-tr from-amber-400 via-pink-500 to-rose-600' 
+                          : 'bg-neutral-700'
+                      }`}>
+                        <img 
+                          src={story.userAvatar} 
+                          alt={story.username}
+                          className="w-14 h-14 rounded-full object-cover border-2 border-neutral-950"
+                        />
+                        {story.isLive && (
+                          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white font-extrabold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wider">
+                            LIVE
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-neutral-300 font-medium truncate max-w-[68px]">
+                        {story.username}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ))}
+                </div>
 
-                  {/* Action Bar */}
-                  <div className="px-3 py-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <button 
-                        onClick={() => toggleLikePost(post.id)}
-                        className="transition active:scale-125"
+                {/* BANNER PROJETO TRINKADAS RECURSO RAPIDO */}
+                <div className="mx-3 p-3.5 rounded-2xl bg-gradient-to-r from-pink-950/80 via-neutral-900 to-rose-950/60 border border-pink-500/30 flex items-center justify-between shadow-lg">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Flame className="w-4 h-4 text-pink-400 fill-pink-400" />
+                      <span className="text-xs font-bold text-pink-300 uppercase tracking-wide">Desafio 15 Dias</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-white">Projeto TRINKADAS</h3>
+                    <p className="text-[11px] text-neutral-400">Apenas {projectData.availableSlots} vagas restantes!</p>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('marketplace')}
+                    className="bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-md hover:brightness-110 transition flex items-center gap-1"
+                  >
+                    Ver Projeto
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* POSTS FEED */}
+                <div className="space-y-6">
+                  {posts.map(post => (
+                    <article key={post.id} className="border-b border-neutral-800/60 pb-4">
+                      {/* Post Header */}
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <div className="flex items-center gap-2.5">
+                          <img 
+                            src={post.avatar} 
+                            alt={post.author} 
+                            className="w-8 h-8 rounded-full object-cover ring-1 ring-pink-500/40"
+                          />
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-bold text-neutral-100">{post.author}</span>
+                              <CheckCircle className="w-3.5 h-3.5 text-pink-400 fill-pink-400/20" />
+                            </div>
+                            <span className="text-[10px] text-neutral-400">Atleta & Criadora</span>
+                          </div>
+                        </div>
+                        <span className="text-[11px] text-neutral-500">{post.timeAgo}</span>
+                      </div>
+
+                      {/* Post Media / Carousel */}
+                      <div className="relative aspect-square bg-neutral-900 overflow-hidden">
+                        <img 
+                          src={post.images[0]} 
+                          alt="Post content" 
+                          className="w-full h-full object-cover"
+                        />
+                        {post.images.length > 1 && (
+                          <span className="absolute top-3 right-3 bg-neutral-950/70 text-neutral-200 text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                            1/{post.images.length}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="px-3 py-2.5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => toggleLikePost(post.id)}
+                            className="transition active:scale-125"
+                          >
+                            <Heart className={`w-6 h-6 ${post.isLiked ? 'text-rose-500 fill-rose-500' : 'text-neutral-200'}`} />
+                          </button>
+                          <button className="text-neutral-200 hover:text-pink-400 transition">
+                            <MessageCircle className="w-6 h-6" />
+                          </button>
+                          <button className="text-neutral-200 hover:text-pink-400 transition">
+                            <Send className="w-6 h-6" />
+                          </button>
+                        </div>
+                        <button className="text-neutral-200 hover:text-pink-400 transition">
+                          <Bookmark className="w-6 h-6" />
+                        </button>
+                      </div>
+
+                      {/* Likes Count */}
+                      <div className="px-3 text-xs font-bold text-neutral-200">
+                        {post.likes.toLocaleString()} curtidas
+                      </div>
+
+                      {/* Caption */}
+                      <div className="px-3 pt-1 text-xs text-neutral-300 leading-relaxed">
+                        <span className="font-bold text-neutral-100 mr-1.5">{post.author}</span>
+                        {post.caption}
+                      </div>
+
+                      {/* Comments Section */}
+                      <div className="px-3 pt-2 space-y-1">
+                        {post.comments.map((comment, i) => (
+                          <div key={i} className="text-[11px] text-neutral-300">
+                            <span className="font-semibold text-neutral-200 mr-1">{comment.user}:</span>
+                            <span className="text-neutral-400">{comment.text}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Comment Input */}
+                      <form 
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const input = e.target.elements.commentInput;
+                          handleAddComment(post.id, input.value);
+                          input.value = '';
+                        }}
+                        className="px-3 pt-2.5 flex items-center gap-2"
                       >
-                        <Heart className={`w-6 h-6 ${post.isLiked ? 'text-rose-500 fill-rose-500' : 'text-neutral-200'}`} />
+                        <input 
+                          name="commentInput"
+                          type="text" 
+                          placeholder="Adicione um comentário..." 
+                          className="flex-1 bg-transparent text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none"
+                        />
+                        <button type="submit" className="text-xs font-bold text-pink-400 hover:text-pink-300">
+                          Publicar
+                        </button>
+                      </form>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ---------------- 2. REELS TAB ---------------- */}
+            {activeTab === 'reels' && (
+              <div className="relative h-[calc(100vh-120px)] bg-neutral-900 rounded-b-xl overflow-hidden snap-y snap-mandatory">
+                {reels.map((reel) => (
+                  <div key={reel.id} className="relative h-full w-full snap-start flex flex-col justify-end p-4">
+                    {/* Simulated Reel Background Image/Video */}
+                    <img 
+                      src={reel.videoBg} 
+                      alt="Reel background" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
+
+                    {/* Mute Button */}
+                    <button 
+                      onClick={() => setIsMuted(!isMuted)}
+                      className="absolute top-4 right-4 p-2.5 rounded-full bg-neutral-950/60 text-white backdrop-blur-md"
+                    >
+                      {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </button>
+
+                    {/* Right Floating Actions */}
+                    <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-10">
+                      <button className="flex flex-col items-center gap-1 text-white">
+                        <div className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md">
+                          <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
+                        </div>
+                        <span className="text-[11px] font-semibold">{reel.likes}</span>
                       </button>
-                      <button className="text-neutral-200 hover:text-pink-400 transition">
-                        <MessageCircle className="w-6 h-6" />
+
+                      <button className="flex flex-col items-center gap-1 text-white">
+                        <div className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md">
+                          <MessageCircle className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-[11px] font-semibold">{reel.commentsCount}</span>
                       </button>
-                      <button className="text-neutral-200 hover:text-pink-400 transition">
+
+                      <button className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md text-white">
                         <Send className="w-6 h-6" />
                       </button>
                     </div>
-                    <button className="text-neutral-200 hover:text-pink-400 transition">
-                      <Bookmark className="w-6 h-6" />
-                    </button>
+
+                    {/* Bottom Caption & Author Info */}
+                    <div className="relative z-10 max-w-[80%] space-y-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <img src={reel.avatar} alt={reel.author} className="w-9 h-9 rounded-full border-2 border-pink-500" />
+                        <span className="text-xs font-bold text-white">{reel.author}</span>
+                        <button className="text-[10px] font-bold bg-pink-600 hover:bg-pink-500 text-white px-2.5 py-1 rounded-full border border-pink-400/40">
+                          Seguir
+                        </button>
+                      </div>
+                      <p className="text-xs text-neutral-200 line-clamp-2">{reel.caption}</p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-neutral-300">
+                        <Film className="w-3 h-3 text-pink-400" />
+                        <span className="truncate max-w-[200px]">{reel.song}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ---------------- 3. MARKETPLACE (PROJETO TRINKADAS) TAB ---------------- */}
+            {activeTab === 'marketplace' && (
+              <div className="p-4 space-y-6">
+                
+                {/* HERO PRODUCT HEADER */}
+                <div className="relative rounded-3xl overflow-hidden border border-pink-500/30 shadow-2xl bg-neutral-900">
+                  <img 
+                    src={projectData.coverImage} 
+                    alt={projectData.title} 
+                    className="w-full h-56 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent flex flex-col justify-end p-5">
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-pink-400 bg-pink-500/20 w-max px-2.5 py-0.5 rounded-md border border-pink-500/30 mb-1">
+                      Desafio Fitness Feminino
+                    </span>
+                    <h1 className="text-2xl font-black text-white leading-tight">{projectData.title}</h1>
+                    <p className="text-xs text-neutral-300 mt-1">{projectData.subtitle}</p>
+                  </div>
+                </div>
+
+                {/* LIMITED SLOTS ALERT */}
+                <div className="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-pink-500/10 border border-pink-500/30 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+                      <Flame className="w-4 h-4 fill-amber-400" />
+                      VAGAS LIMITADAS
+                    </div>
+                    <p className="text-xs text-neutral-300">Apenas <strong className="text-pink-400 font-extrabold">{projectData.availableSlots} de {projectData.totalSlots}</strong> vagas disponíveis!</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-neutral-400 line-through">R$ 97,00</span>
+                    <div className="text-xl font-black text-white">R$ 49,90</div>
+                  </div>
+                </div>
+
+                {/* IF PURCHASED: MEMBER ACCESS AREA */}
+                {hasPurchased ? (
+                  <div className="bg-gradient-to-br from-emerald-950/60 to-neutral-900 border border-emerald-500/40 rounded-3xl p-5 space-y-4 shadow-xl">
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CheckCircle className="w-6 h-6 fill-emerald-500/20" />
+                      <div>
+                        <h3 className="font-bold text-sm text-white">Acesso Confirmado ao Projeto!</h3>
+                        <p className="text-[11px] text-neutral-300">Bem-vinda ao time das Trinkadas ✨</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-neutral-800">
+                      <a 
+                        href="#whatsapp" 
+                        onClick={(e) => { e.preventDefault(); alert("Redirecionando para o Grupo VIP do WhatsApp da Mari Marques!"); }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/20"
+                      >
+                        Entrar no Grupo Exclusivo do WhatsApp
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button 
+                          onClick={() => alert("Baixando Planilha de Treinos (Superior, Inferior e Abdominal)...")}
+                          className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold py-2.5 px-3 rounded-xl border border-neutral-700 flex items-center justify-center gap-1.5"
+                        >
+                          <Dumbbell className="w-3.5 h-3.5 text-pink-400" />
+                          Planilha Treinos
+                        </button>
+                        <button 
+                          onClick={() => alert("Baixando Planilha de Corrida (Iniciante e Intermediário)...")}
+                          className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold py-2.5 px-3 rounded-xl border border-neutral-700 flex items-center justify-center gap-1.5"
+                        >
+                          <Flame className="w-3.5 h-3.5 text-rose-400" />
+                          Planilha Corrida
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => { setPaymentStep(1); setShowCheckoutModal(true); }}
+                    className="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:brightness-110 text-white font-black text-sm py-4 rounded-2xl shadow-xl shadow-pink-500/25 transition flex items-center justify-center gap-2 uppercase tracking-wide"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Garantir Minha Vaga por R$ 49,90
+                  </button>
+                )}
+
+                {/* WHAT YOU GET SECTION (FROM PDF) */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-neutral-100 uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-pink-400" />
+                    O que você vai receber:
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {projectData.features.map((item, idx) => (
+                      <div key={idx} className="bg-neutral-900/80 border border-neutral-800 p-3.5 rounded-2xl flex items-start gap-3">
+                        <div className="p-2 bg-pink-500/10 text-pink-400 rounded-xl mt-0.5">
+                          <Check className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-white">{item.title}</h4>
+                          <p className="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DAILY CHALLENGES (MINI DESAFIOS FROM PDF) */}
+                <div className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-4 space-y-3">
+                  <h3 className="text-xs font-bold text-pink-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-pink-400" />
+                    Mini Desafios Diários do Projeto:
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {projectData.dailyChallenges.map((challenge, i) => (
+                      <div key={i} className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800/80 text-[11px] text-neutral-300 flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                        {challenge}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* PRA QUEM É VS PRA QUEM NÃO É */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* PRA QUEM É */}
+                  <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
+                    <h4 className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                      Pra quem É:
+                    </h4>
+                    <ul className="space-y-1.5">
+                      {projectData.forWho.map((item, i) => (
+                        <li key={i} className="text-[11px] text-neutral-300 flex items-center gap-2">
+                          <span className="text-emerald-400 font-bold">✓</span> {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  {/* Likes Count */}
-                  <div className="px-3 text-xs font-bold text-neutral-200">
-                    {post.likes.toLocaleString()} curtidas
+                  {/* PRA QUEM NÃO É */}
+                  <div className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-4 space-y-2">
+                    <h4 className="text-xs font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <X className="w-4 h-4 text-rose-400" />
+                      Pra quem NÃO é:
+                    </h4>
+                    <ul className="space-y-1.5">
+                      {projectData.notForWho.map((item, i) => (
+                        <li key={i} className="text-[11px] text-neutral-400 flex items-center gap-2">
+                          <span className="text-rose-400 font-bold">✕</span> {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* AUTHOR BIO CARD */}
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex items-center gap-3">
+                  <img src={INFLUENCER_PROFILE.avatar} alt="Mari Marques" className="w-12 h-12 rounded-full object-cover border border-pink-500" />
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Criado por {INFLUENCER_PROFILE.name}</h4>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">"Construindo constância e hábitos saudáveis de forma leve e possível."</p>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* ---------------- 4. LIVE TRANSMISSION TAB ---------------- */}
+            {activeTab === 'live' && (
+              <div className="relative h-[calc(100vh-120px)] bg-neutral-950 overflow-hidden flex flex-col justify-between">
+                {/* Live Video Background Simulation */}
+                <img 
+                  src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80" 
+                  alt="Live Stream" 
+                  className="absolute inset-0 w-full h-full object-cover filter brightness-75"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/90" />
+
+                {/* Live Header Info */}
+                <div className="relative z-10 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <img src={INFLUENCER_PROFILE.avatar} alt="Mari Marques" className="w-10 h-10 rounded-full border-2 border-rose-500" />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-white">mari.marques_</span>
+                        <span className="bg-rose-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">
+                          AO VIVO
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-neutral-300">
+                        <Eye className="w-3 h-3 text-rose-400" />
+                        <span>1,420 assistindo</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Caption */}
-                  <div className="px-3 pt-1 text-xs text-neutral-300 leading-relaxed">
-                    <span className="font-bold text-neutral-100 mr-1.5">{post.author}</span>
-                    {post.caption}
-                  </div>
+                  <button 
+                    onClick={() => { setActiveTab('feed'); setIsLiveActive(false); }}
+                    className="p-2 rounded-full bg-neutral-900/60 text-white backdrop-blur-md hover:bg-neutral-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-                  {/* Comments Section */}
-                  <div className="px-3 pt-2 space-y-1">
-                    {post.comments.map((comment, i) => (
-                      <div key={i} className="text-[11px] text-neutral-300">
-                        <span className="font-semibold text-neutral-200 mr-1">{comment.user}:</span>
-                        <span className="text-neutral-400">{comment.text}</span>
+                {/* Floating Animated Hearts */}
+                <div className="absolute right-6 bottom-24 w-12 h-64 pointer-events-none z-20">
+                  {liveHearts.map(heart => (
+                    <div 
+                      key={heart.id} 
+                      className="absolute bottom-0 animate-bounce text-rose-500 opacity-90 transition-all duration-1000"
+                      style={{ left: `${heart.left}%`, fontSize: `${heart.size}px` }}
+                    >
+                      ❤️
+                    </div>
+                  ))}
+                </div>
+
+                {/* Live Comments & Chat Stream */}
+                <div className="relative z-10 p-4 space-y-3">
+                  <div className="max-h-48 overflow-y-auto space-y-2 no-scrollbar pr-10">
+                    {liveComments.map(comment => (
+                      <div key={comment.id} className="bg-neutral-950/60 backdrop-blur-md p-2 rounded-xl text-xs max-w-[85%] border border-neutral-800/50">
+                        <span className="font-bold text-pink-400 mr-1.5">{comment.user}:</span>
+                        <span className="text-neutral-200">{comment.text}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Add Comment Input */}
-                  <form 
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const input = e.target.elements.commentInput;
-                      handleAddComment(post.id, input.value);
-                      input.value = '';
-                    }}
-                    className="px-3 pt-2.5 flex items-center gap-2"
-                  >
+                  {/* Send Comment & Hearts in Live */}
+                  <form onSubmit={handleSendLiveComment} className="flex items-center gap-2">
                     <input 
-                      name="commentInput"
                       type="text" 
-                      placeholder="Adicione um comentário..." 
-                      className="flex-1 bg-transparent text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none"
+                      value={newLiveCommentText}
+                      onChange={(e) => setNewLiveCommentText(e.target.value)}
+                      placeholder="Comente no ao vivo..." 
+                      className="flex-1 bg-neutral-900/80 border border-neutral-700/80 text-xs text-white placeholder-neutral-400 rounded-full px-4 py-2.5 focus:outline-none focus:border-pink-500 backdrop-blur-md"
                     />
-                    <button type="submit" className="text-xs font-bold text-pink-400 hover:text-pink-300">
-                      Publicar
+                    <button 
+                      type="button" 
+                      onClick={sendLiveHeart}
+                      className="p-2.5 rounded-full bg-rose-600/80 hover:bg-rose-500 text-white backdrop-blur-md transition active:scale-125"
+                    >
+                      <Heart className="w-5 h-5 fill-white" />
                     </button>
                   </form>
-                </article>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ---------------- 2. REELS TAB ---------------- */}
-        {activeTab === 'reels' && (
-          <div className="relative h-[calc(100vh-120px)] bg-neutral-900 rounded-b-xl overflow-hidden snap-y snap-mandatory">
-            {reels.map((reel) => (
-              <div key={reel.id} className="relative h-full w-full snap-start flex flex-col justify-end p-4">
-                {/* Simulated Reel Background Image/Video */}
-                <img 
-                  src={reel.videoBg} 
-                  alt="Reel background" 
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
-
-                {/* Mute Button */}
-                <button 
-                  onClick={() => setIsMuted(!isMuted)}
-                  className="absolute top-4 right-4 p-2.5 rounded-full bg-neutral-950/60 text-white backdrop-blur-md"
-                >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-
-                {/* Right Floating Actions */}
-                <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-10">
-                  <button className="flex flex-col items-center gap-1 text-white">
-                    <div className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md">
-                      <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
-                    </div>
-                    <span className="text-[11px] font-semibold">{reel.likes}</span>
-                  </button>
-
-                  <button className="flex flex-col items-center gap-1 text-white">
-                    <div className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md">
-                      <MessageCircle className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-[11px] font-semibold">{reel.commentsCount}</span>
-                  </button>
-
-                  <button className="p-2.5 rounded-full bg-neutral-900/40 backdrop-blur-md text-white">
-                    <Send className="w-6 h-6" />
-                  </button>
-                </div>
-
-                {/* Bottom Caption & Author Info */}
-                <div className="relative z-10 max-w-[80%] space-y-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <img src={reel.avatar} alt={reel.author} className="w-9 h-9 rounded-full border-2 border-pink-500" />
-                    <span className="text-xs font-bold text-white">{reel.author}</span>
-                    <button className="text-[10px] font-bold bg-pink-600 hover:bg-pink-500 text-white px-2.5 py-1 rounded-full border border-pink-400/40">
-                      Seguir
-                    </button>
-                  </div>
-                  <p className="text-xs text-neutral-200 line-clamp-2">{reel.caption}</p>
-                  <div className="flex items-center gap-1.5 text-[10px] text-neutral-300">
-                    <Film className="w-3 h-3 text-pink-400" />
-                    <span className="truncate max-w-[200px]">{reel.song}</span>
-                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* ---------------- 3. MARKETPLACE (PROJETO TRINKADAS) TAB ---------------- */}
-        {activeTab === 'marketplace' && (
-          <div className="p-4 space-y-6">
-            
-            {/* HERO PRODUCT HEADER */}
-            <div className="relative rounded-3xl overflow-hidden border border-pink-500/30 shadow-2xl bg-neutral-900">
-              <img 
-                src={projectData.coverImage} 
-                alt={projectData.title} 
-                className="w-full h-56 object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent flex flex-col justify-end p-5">
-                <span className="text-xs font-extrabold uppercase tracking-widest text-pink-400 bg-pink-500/20 w-max px-2.5 py-0.5 rounded-md border border-pink-500/30 mb-1">
-                  Desafio Fitness Feminino
-                </span>
-                <h1 className="text-2xl font-black text-white leading-tight">{projectData.title}</h1>
-                <p className="text-xs text-neutral-300 mt-1">{projectData.subtitle}</p>
-              </div>
-            </div>
-
-            {/* LIMITED SLOTS ALERT */}
-            <div className="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-pink-500/10 border border-pink-500/30 rounded-2xl p-4 flex items-center justify-between">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
-                  <Flame className="w-4 h-4 fill-amber-400" />
-                  VAGAS LIMITADAS
-                </div>
-                <p className="text-xs text-neutral-300">Apenas <strong className="text-pink-400 font-extrabold">{projectData.availableSlots} de {projectData.totalSlots}</strong> vagas disponíveis!</p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-neutral-400 line-through">R$ 97,00</span>
-                <div className="text-xl font-black text-white">R$ 49,90</div>
-              </div>
-            </div>
-
-            {/* IF PURCHASED: MEMBER ACCESS AREA */}
-            {hasPurchased ? (
-              <div className="bg-gradient-to-br from-emerald-950/60 to-neutral-900 border border-emerald-500/40 rounded-3xl p-5 space-y-4 shadow-xl">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <CheckCircle className="w-6 h-6 fill-emerald-500/20" />
-                  <div>
-                    <h3 className="font-bold text-sm text-white">Acesso Confirmado ao Projeto!</h3>
-                    <p className="text-[11px] text-neutral-300">Bem-vinda ao time das Trinkadas ✨</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-neutral-800">
-                  <a 
-                    href="#whatsapp" 
-                    onClick={(e) => { e.preventDefault(); alert("Redirecionando para o Grupo VIP do WhatsApp da Mari Marques!"); }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/20"
-                  >
-                    Entrar no Grupo Exclusivo do WhatsApp
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button 
-                      onClick={() => alert("Baixando Planilha de Treinos (Superior, Inferior e Abdominal)...")}
-                      className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold py-2.5 px-3 rounded-xl border border-neutral-700 flex items-center justify-center gap-1.5"
-                    >
-                      <Dumbbell className="w-3.5 h-3.5 text-pink-400" />
-                      Planilha Treinos
-                    </button>
-                    <button 
-                      onClick={() => alert("Baixando Planilha de Corrida (Iniciante e Intermediário)...")}
-                      className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-semibold py-2.5 px-3 rounded-xl border border-neutral-700 flex items-center justify-center gap-1.5"
-                    >
-                      <Flame className="w-3.5 h-3.5 text-rose-400" />
-                      Planilha Corrida
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button 
-                onClick={() => { setPaymentStep(1); setShowCheckoutModal(true); }}
-                className="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:brightness-110 text-white font-black text-sm py-4 rounded-2xl shadow-xl shadow-pink-500/25 transition flex items-center justify-center gap-2 uppercase tracking-wide"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                Garantir Minha Vaga por R$ 49,90
-              </button>
             )}
 
-            {/* WHAT YOU GET SECTION (FROM PDF) */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-neutral-100 uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-pink-400" />
-                O que você vai receber:
-              </h3>
-              <div className="grid grid-cols-1 gap-2.5">
-                {projectData.features.map((item, idx) => (
-                  <div key={idx} className="bg-neutral-900/80 border border-neutral-800 p-3.5 rounded-2xl flex items-start gap-3">
-                    <div className="p-2 bg-pink-500/10 text-pink-400 rounded-xl mt-0.5">
-                      <Check className="w-4 h-4" />
+            {/* ---------------- 5. PROFILE TAB ---------------- */}
+            {activeTab === 'profile' && (
+              <div className="p-4 space-y-5">
+                
+                {/* Profile Header */}
+                <div className="flex items-center justify-between">
+                  <div className="relative">
+                    <img 
+                      src={INFLUENCER_PROFILE.avatar} 
+                      alt={INFLUENCER_PROFILE.name} 
+                      className="w-20 h-20 rounded-full object-cover ring-2 ring-pink-500 p-0.5"
+                    />
+                  </div>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 text-center">
+                    <div>
+                      <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.postsCount}</div>
+                      <div className="text-[11px] text-neutral-400">Posts</div>
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white">{item.title}</h4>
-                      <p className="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">{item.desc}</p>
+                      <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.followers}</div>
+                      <div className="text-[11px] text-neutral-400">Alunas</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.following}</div>
+                      <div className="text-[11px] text-neutral-400">Seguindo</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* DAILY CHALLENGES (MINI DESAFIOS FROM PDF) */}
-            <div className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-4 space-y-3">
-              <h3 className="text-xs font-bold text-pink-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-pink-400" />
-                Mini Desafios Diários do Projeto:
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {projectData.dailyChallenges.map((challenge, i) => (
-                  <div key={i} className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800/80 text-[11px] text-neutral-300 flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-                    {challenge}
+                {/* Bio & Links */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <h2 className="text-xs font-bold text-white">{INFLUENCER_PROFILE.name}</h2>
+                    <CheckCircle className="w-3.5 h-3.5 text-pink-400 fill-pink-400/20" />
                   </div>
-                ))}
-              </div>
-            </div>
+                  <p className="text-xs text-neutral-300 whitespace-pre-line leading-relaxed">
+                    {INFLUENCER_PROFILE.bio}
+                  </p>
+                  <a 
+                    href="https://www.instagram.com/mari.marques_/" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-xs font-semibold text-pink-400 hover:underline flex items-center gap-1 pt-1"
+                  >
+                    instagram.com/mari.marques_
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
 
-            {/* PRA QUEM É VS PRA QUEM NÃO É */}
-            <div className="grid grid-cols-1 gap-4">
-              {/* PRA QUEM É */}
-              <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
-                <h4 className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  Pra quem É:
-                </h4>
-                <ul className="space-y-1.5">
-                  {projectData.forWho.map((item, i) => (
-                    <li key={i} className="text-[11px] text-neutral-300 flex items-center gap-2">
-                      <span className="text-emerald-400 font-bold">✓</span> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                {/* Profile CTA Buttons */}
+                <div className="flex items-center gap-2 pt-1">
+                  <button 
+                    onClick={() => setActiveTab('marketplace')}
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs font-bold py-2.5 rounded-xl shadow-md hover:brightness-110 transition"
+                  >
+                    Ver Projetos Fit
+                  </button>
+                  <button 
+                    onClick={() => setIsInfluencerMode(!isInfluencerMode)}
+                    className="px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold py-2.5 rounded-xl border border-neutral-700 transition"
+                  >
+                    {isInfluencerMode ? 'Visão Aluna' : 'Modo Criadora'}
+                  </button>
+                </div>
 
-              {/* PRA QUEM NÃO É */}
-              <div className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-4 space-y-2">
-                <h4 className="text-xs font-extrabold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <X className="w-4 h-4 text-rose-400" />
-                  Pra quem NÃO é:
-                </h4>
-                <ul className="space-y-1.5">
-                  {projectData.notForWho.map((item, i) => (
-                    <li key={i} className="text-[11px] text-neutral-400 flex items-center gap-2">
-                      <span className="text-rose-400 font-bold">✕</span> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* AUTHOR BIO CARD */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex items-center gap-3">
-              <img src={INFLUENCER_PROFILE.avatar} alt="Mari Marques" className="w-12 h-12 rounded-full object-cover border border-pink-500" />
-              <div>
-                <h4 className="text-xs font-bold text-white">Criado por {INFLUENCER_PROFILE.name}</h4>
-                <p className="text-[11px] text-neutral-400 mt-0.5">"Construindo constância e hábitos saudáveis de forma leve e possível."</p>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ---------------- 4. LIVE TRANSMISSION TAB ---------------- */}
-        {activeTab === 'live' && (
-          <div className="relative h-[calc(100vh-120px)] bg-neutral-950 overflow-hidden flex flex-col justify-between">
-            {/* Live Video Background Simulation */}
-            <img 
-              src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80" 
-              alt="Live Stream" 
-              className="absolute inset-0 w-full h-full object-cover filter brightness-75"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/90" />
-
-            {/* Live Header Info */}
-            <div className="relative z-10 p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <img src={INFLUENCER_PROFILE.avatar} alt="Mari Marques" className="w-10 h-10 rounded-full border-2 border-rose-500" />
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white">mari.marques_</span>
-                    <span className="bg-rose-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">
-                      AO VIVO
-                    </span>
+                {/* Profile Grid Grid Photos */}
+                <div className="pt-4 border-t border-neutral-800">
+                  <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
+                    <Film className="w-4 h-4 text-pink-400" />
+                    Publicações da Mari
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-neutral-300">
-                    <Eye className="w-3 h-3 text-rose-400" />
-                    <span>1,420 assistindo</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {posts.map(p => (
+                      <div key={p.id} className="aspect-square bg-neutral-900 overflow-hidden relative group">
+                        <img src={p.images[0]} alt="Post thumbnail" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 text-white text-xs font-bold">
+                          <Heart className="w-4 h-4 fill-white" />
+                          {p.likes}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
 
-              <button 
-                onClick={() => { setActiveTab('feed'); setIsLiveActive(false); }}
-                className="p-2 rounded-full bg-neutral-900/60 text-white backdrop-blur-md hover:bg-neutral-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Floating Animated Hearts */}
-            <div className="absolute right-6 bottom-24 w-12 h-64 pointer-events-none z-20">
-              {liveHearts.map(heart => (
-                <div 
-                  key={heart.id} 
-                  className="absolute bottom-0 animate-bounce text-rose-500 opacity-90 transition-all duration-1000"
-                  style={{ left: `${heart.left}%`, fontSize: `${heart.size}px` }}
-                >
-                  ❤️
-                </div>
-              ))}
-            </div>
-
-            {/* Live Comments & Chat Stream */}
-            <div className="relative z-10 p-4 space-y-3">
-              <div className="max-h-48 overflow-y-auto space-y-2 no-scrollbar pr-10">
-                {liveComments.map(comment => (
-                  <div key={comment.id} className="bg-neutral-950/60 backdrop-blur-md p-2 rounded-xl text-xs max-w-[85%] border border-neutral-800/50">
-                    <span className="font-bold text-pink-400 mr-1.5">{comment.user}:</span>
-                    <span className="text-neutral-200">{comment.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Send Comment & Hearts in Live */}
-              <form onSubmit={handleSendLiveComment} className="flex items-center gap-2">
-                <input 
-                  type="text" 
-                  value={newLiveCommentText}
-                  onChange={(e) => setNewLiveCommentText(e.target.value)}
-                  placeholder="Comente no ao vivo..." 
-                  className="flex-1 bg-neutral-900/80 border border-neutral-700/80 text-xs text-white placeholder-neutral-400 rounded-full px-4 py-2.5 focus:outline-none focus:border-pink-500 backdrop-blur-md"
-                />
-                <button 
-                  type="button" 
-                  onClick={sendLiveHeart}
-                  className="p-2.5 rounded-full bg-rose-600/80 hover:bg-rose-500 text-white backdrop-blur-md transition active:scale-125"
-                >
-                  <Heart className="w-5 h-5 fill-white" />
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ---------------- 5. PROFILE TAB ---------------- */}
-        {activeTab === 'profile' && (
-          <div className="p-4 space-y-5">
-            
-            {/* Profile Header */}
-            <div className="flex items-center justify-between">
-              <div className="relative">
-                <img 
-                  src={INFLUENCER_PROFILE.avatar} 
-                  alt={INFLUENCER_PROFILE.name} 
-                  className="w-20 h-20 rounded-full object-cover ring-2 ring-pink-500 p-0.5"
-                />
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center gap-6 text-center">
-                <div>
-                  <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.postsCount}</div>
-                  <div className="text-[11px] text-neutral-400">Posts</div>
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.followers}</div>
-                  <div className="text-[11px] text-neutral-400">Alunas</div>
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">{INFLUENCER_PROFILE.following}</div>
-                  <div className="text-[11px] text-neutral-400">Seguindo</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bio & Links */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-1">
-                <h2 className="text-xs font-bold text-white">{INFLUENCER_PROFILE.name}</h2>
-                <CheckCircle className="w-3.5 h-3.5 text-pink-400 fill-pink-400/20" />
-              </div>
-              <p className="text-xs text-neutral-300 whitespace-pre-line leading-relaxed">
-                {INFLUENCER_PROFILE.bio}
-              </p>
-              <a 
-                href="https://www.instagram.com/mari.marques_/" 
-                target="_blank" 
-                rel="noreferrer"
-                className="text-xs font-semibold text-pink-400 hover:underline flex items-center gap-1 pt-1"
-              >
-                instagram.com/mari.marques_
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-
-            {/* Profile CTA Buttons */}
-            <div className="flex items-center gap-2 pt-1">
-              <button 
-                onClick={() => setActiveTab('marketplace')}
-                className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs font-bold py-2.5 rounded-xl shadow-md hover:brightness-110 transition"
-              >
-                Ver Projetos Fit
-              </button>
-              <button 
-                onClick={() => setIsInfluencerMode(!isInfluencerMode)}
-                className="px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold py-2.5 rounded-xl border border-neutral-700 transition"
-              >
-                {isInfluencerMode ? 'Visão Aluna' : 'Modo Criadora'}
-              </button>
-            </div>
-
-            {/* Profile Grid Grid Photos */}
-            <div className="pt-4 border-t border-neutral-800">
-              <div className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
-                <Film className="w-4 h-4 text-pink-400" />
-                Publicações da Mari
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                {posts.map(p => (
-                  <div key={p.id} className="aspect-square bg-neutral-900 overflow-hidden relative group">
-                    <img src={p.images[0]} alt="Post thumbnail" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 text-white text-xs font-bold">
-                      <Heart className="w-4 h-4 fill-white" />
-                      {p.likes}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        )}
-
-      </main>
-
-      {/* ================= STORY FULLSCREEN MODAL ================= */}
-      {activeStoryIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col justify-between max-w-md mx-auto">
-          {/* Progress Bar */}
-          <div className="absolute top-3 inset-x-3 z-20 flex gap-1">
-            <div className="h-1 flex-1 bg-white/40 rounded-full overflow-hidden">
-              <div className="h-full bg-white animate-[pulse_3s_linear]" />
-            </div>
-          </div>
-
-          {/* Story Top Info Bar */}
-          <div className="relative z-20 pt-6 px-4 flex items-center justify-between text-white">
-            <div className="flex items-center gap-2">
-              <img 
-                src={stories[activeStoryIndex].userAvatar} 
-                alt={stories[activeStoryIndex].username} 
-                className="w-8 h-8 rounded-full border border-pink-500 object-cover"
-              />
-              <span className="text-xs font-bold">{stories[activeStoryIndex].username}</span>
-              <span className="text-[10px] text-neutral-300">{stories[activeStoryIndex].time}</span>
-            </div>
-            <button onClick={() => setActiveStoryIndex(null)} className="p-1">
-              <X className="w-6 h-6 text-white" />
-            </button>
-          </div>
-
-          {/* Story Main Image */}
-          <img 
-            src={stories[activeStoryIndex].media} 
-            alt="Story media" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-
-          {/* Story Bottom Caption & Reaction Input */}
-          <div className="relative z-20 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent space-y-3">
-            <p className="text-xs text-white font-medium bg-black/40 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
-              {stories[activeStoryIndex].caption}
-            </p>
-            <div className="flex items-center gap-2">
-              <input 
-                type="text" 
-                placeholder={`Responder a ${stories[activeStoryIndex].username}...`}
-                className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-neutral-300 focus:outline-none backdrop-blur-md"
-              />
-              <button 
-                onClick={() => { alert("Reação enviada!"); setActiveStoryIndex(null); }}
-                className="p-2.5 rounded-full bg-pink-600 text-white"
-              >
-                <Heart className="w-5 h-5 fill-white" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= INFLUENCER CREATE CONTENT MODAL ================= */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 max-w-md mx-auto">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-5 w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-pink-400" />
-                Painel da Mari Marques
-              </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-neutral-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Type Selector */}
-            <div className="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800">
-              <button 
-                onClick={() => setCreateType('post')}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${createType === 'post' ? 'bg-pink-600 text-white' : 'text-neutral-400'}`}
-              >
-                Novo Post Feed
-              </button>
-              <button 
-                onClick={() => setCreateType('story')}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${createType === 'story' ? 'bg-pink-600 text-white' : 'text-neutral-400'}`}
-              >
-                Novo Story
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateContent} className="space-y-3">
-              <div>
-                <label className="text-[11px] font-semibold text-neutral-300 block mb-1">URL da Imagem / Foto</label>
-                <input 
-                  type="text" 
-                  value={newPostImageUrl}
-                  onChange={(e) => setNewPostImageUrl(e.target.value)}
-                  placeholder="https://sua-foto-aqui.com/imagem.jpg (Opcional)"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-pink-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-neutral-300 block mb-1">Legenda / Texto</label>
-                <textarea 
-                  rows={3}
-                  value={newPostCaption}
-                  onChange={(e) => setNewPostCaption(e.target.value)}
-                  placeholder="Escreva algo motivacional sobre o treino ou projeto..."
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-pink-500 resize-none"
-                  required
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg hover:brightness-110 transition"
-              >
-                Publicar Agora
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= CHECKOUT MODAL (PROJETO TRINKADAS) ================= */}
-      {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center max-w-md mx-auto">
-          <div className="bg-neutral-900 border border-pink-500/30 rounded-t-3xl sm:rounded-3xl p-5 w-full space-y-4 shadow-2xl animate-in slide-in-from-bottom">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-white">Inscrição no Projeto TRINKADAS</h3>
-                <p className="text-[10px] text-pink-400">15 dias com acompanhamento da Mari Marques</p>
-              </div>
-              <button onClick={() => setShowCheckoutModal(false)} className="text-neutral-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {paymentStep === 1 ? (
-              <div className="space-y-4">
-                <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
-                  <span className="text-xs text-neutral-300">Valor da Vaga:</span>
-                  <span className="text-base font-extrabold text-pink-400">R$ 49,90</span>
-                </div>
-
-                <div className="space-y-2">
-                  <input 
-                    type="text" 
-                    placeholder="Seu Nome Completo" 
-                    defaultValue="Ana Paula Souza"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
-                  />
-                  <input 
-                    type="email" 
-                    placeholder="Seu Melhor E-mail" 
-                    defaultValue="ana.paula@email.com"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="WhatsApp com DDD" 
-                    defaultValue="(41) 99999-8888"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
-                  />
-                </div>
-
-                <button 
-                  onClick={handleCompletePurchase}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs py-3.5 rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2 uppercase tracking-wider"
-                >
-                  <Shield className="w-4 h-4" />
-                  Confirmar Inscrição PIX / Cartão
-                </button>
-              </div>
-            ) : (
-              <div className="py-8 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto animate-bounce">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <h4 className="text-base font-bold text-white">Processando Pagamento...</h4>
-                <p className="text-xs text-neutral-400">Você será liberada para o Grupo do WhatsApp e Planilhas em instantes.</p>
               </div>
             )}
-          </div>
+
+          </main>
+
+          {/* ================= STORY FULLSCREEN MODAL ================= */}
+          {activeStoryIndex !== null && (
+            <div className="fixed inset-0 z-50 bg-black flex flex-col justify-between max-w-md mx-auto">
+              {/* Progress Bar */}
+              <div className="absolute top-3 inset-x-3 z-20 flex gap-1">
+                <div className="h-1 flex-1 bg-white/40 rounded-full overflow-hidden">
+                  <div className="h-full bg-white animate-[pulse_3s_linear]" />
+                </div>
+              </div>
+
+              {/* Story Top Info Bar */}
+              <div className="relative z-20 pt-6 px-4 flex items-center justify-between text-white">
+                <div className="flex items-center gap-2">
+                  <img 
+                    src={stories[activeStoryIndex].userAvatar} 
+                    alt={stories[activeStoryIndex].username} 
+                    className="w-8 h-8 rounded-full border border-pink-500 object-cover"
+                  />
+                  <span className="text-xs font-bold">{stories[activeStoryIndex].username}</span>
+                  <span className="text-[10px] text-neutral-300">{stories[activeStoryIndex].time}</span>
+                </div>
+                <button onClick={() => setActiveStoryIndex(null)} className="p-1">
+                  <X className="w-6 h-6 text-white" />
+                </button>
+              </div>
+
+              {/* Story Main Image */}
+              <img 
+                src={stories[activeStoryIndex].media} 
+                alt="Story media" 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+
+              {/* Story Bottom Caption & Reaction Input */}
+              <div className="relative z-20 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent space-y-3">
+                <p className="text-xs text-white font-medium bg-black/40 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                  {stories[activeStoryIndex].caption}
+                </p>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text" 
+                    placeholder={`Responder a ${stories[activeStoryIndex].username}...`}
+                    className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-neutral-300 focus:outline-none backdrop-blur-md"
+                  />
+                  <button 
+                    onClick={() => { alert("Reação enviada!"); setActiveStoryIndex(null); }}
+                    className="p-2.5 rounded-full bg-pink-600 text-white"
+                  >
+                    <Heart className="w-5 h-5 fill-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= INFLUENCER CREATE CONTENT MODAL ================= */}
+          {showCreateModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 max-w-md mx-auto">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-5 w-full space-y-4 shadow-2xl">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-pink-400" />
+                    Painel da Mari Marques
+                  </h3>
+                  <button onClick={() => setShowCreateModal(false)} className="text-neutral-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Type Selector */}
+                <div className="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800">
+                  <button 
+                    onClick={() => setCreateType('post')}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${createType === 'post' ? 'bg-pink-600 text-white' : 'text-neutral-400'}`}
+                  >
+                    Novo Post Feed
+                  </button>
+                  <button 
+                    onClick={() => setCreateType('story')}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${createType === 'story' ? 'bg-pink-600 text-white' : 'text-neutral-400'}`}
+                  >
+                    Novo Story
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateContent} className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-neutral-300 block mb-1">URL da Imagem / Foto</label>
+                    <input 
+                      type="text" 
+                      value={newPostImageUrl}
+                      onChange={(e) => setNewPostImageUrl(e.target.value)}
+                      placeholder="https://sua-foto-aqui.com/imagem.jpg (Opcional)"
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-pink-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold text-neutral-300 block mb-1">Legenda / Texto</label>
+                    <textarea 
+                      rows={3}
+                      value={newPostCaption}
+                      onChange={(e) => setNewPostCaption(e.target.value)}
+                      placeholder="Escreva algo motivacional sobre o treino ou projeto..."
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-pink-500 resize-none"
+                      required
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg hover:brightness-110 transition"
+                  >
+                    Publicar Agora
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* ================= CHECKOUT MODAL (PROJETO TRINKADAS) ================= */}
+          {showCheckoutModal && (
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center max-w-md mx-auto">
+              <div className="bg-neutral-900 border border-pink-500/30 rounded-t-3xl sm:rounded-3xl p-5 w-full space-y-4 shadow-2xl animate-in slide-in-from-bottom">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Inscrição no Projeto TRINKADAS</h3>
+                    <p className="text-[10px] text-pink-400">15 dias com acompanhamento da Mari Marques</p>
+                  </div>
+                  <button onClick={() => setShowCheckoutModal(false)} className="text-neutral-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {paymentStep === 1 ? (
+                  <div className="space-y-4">
+                    <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
+                      <span className="text-xs text-neutral-300">Valor da Vaga:</span>
+                      <span className="text-base font-extrabold text-pink-400">R$ 49,90</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <input 
+                        type="text" 
+                        placeholder="Seu Nome Completo" 
+                        defaultValue="Ana Paula Souza"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
+                      />
+                      <input 
+                        type="email" 
+                        placeholder="Seu Melhor E-mail" 
+                        defaultValue="ana.paula@email.com"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="WhatsApp com DDD" 
+                        defaultValue="(41) 99999-8888"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-pink-500"
+                      />
+                    </div>
+
+                    <button 
+                      onClick={handleCompletePurchase}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs py-3.5 rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2 uppercase tracking-wider"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Confirmar Inscrição PIX / Cartão
+                    </button>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto animate-bounce">
+                      <CheckCircle className="w-8 h-8" />
+                    </div>
+                    <h4 className="text-base font-bold text-white">Processando Pagamento...</h4>
+                    <p className="text-xs text-neutral-400">Você será liberada para o Grupo do WhatsApp e Planilhas em instantes.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ================= BOTTOM NAVIGATION BAR ================= */}
+          <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-neutral-950/95 backdrop-blur-lg border-t border-neutral-800/80 py-2 px-6 flex items-center justify-between z-40">
+            
+            {/* Feed Tab */}
+            <button 
+              onClick={() => setActiveTab('feed')}
+              className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'feed' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            >
+              <Home className="w-6 h-6" />
+              <span className="text-[9px] font-medium">Feed</span>
+            </button>
+
+            {/* Reels Tab */}
+            <button 
+              onClick={() => setActiveTab('reels')}
+              className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'reels' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            >
+              <Film className="w-6 h-6" />
+              <span className="text-[9px] font-medium">Reels</span>
+            </button>
+
+            {/* Marketplace / Projeto Trinkadas Tab */}
+            <button 
+              onClick={() => setActiveTab('marketplace')}
+              className={`flex flex-col items-center gap-0.5 relative transition ${activeTab === 'marketplace' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            >
+              <div className="relative">
+                <ShoppingBag className="w-6 h-6" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-pink-500 rounded-full animate-ping" />
+              </div>
+              <span className="text-[9px] font-bold">Projetos</span>
+            </button>
+
+            {/* Live Tab */}
+            <button 
+              onClick={() => { setActiveTab('live'); setIsLiveActive(true); }}
+              className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'live' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            >
+              <Radio className="w-6 h-6 text-rose-500 animate-pulse" />
+              <span className="text-[9px] font-medium">Live</span>
+            </button>
+
+            {/* Profile Tab */}
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'profile' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            >
+              <User className="w-6 h-6" />
+              <span className="text-[9px] font-medium">Perfil</span>
+            </button>
+
+          </nav>
+
         </div>
-      )}
+      );
+    }
 
-      {/* ================= BOTTOM NAVIGATION BAR ================= */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-neutral-950/95 backdrop-blur-lg border-t border-neutral-800/80 py-2 px-6 flex items-center justify-between z-40">
-        
-        {/* Feed Tab */}
-        <button 
-          onClick={() => setActiveTab('feed')}
-          className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'feed' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
-        >
-          <Home className="w-6 h-6" />
-          <span className="text-[9px] font-medium">Feed</span>
-        </button>
-
-        {/* Reels Tab */}
-        <button 
-          onClick={() => setActiveTab('reels')}
-          className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'reels' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
-        >
-          <Film className="w-6 h-6" />
-          <span className="text-[9px] font-medium">Reels</span>
-        </button>
-
-        {/* Marketplace / Projeto Trinkadas Tab */}
-        <button 
-          onClick={() => setActiveTab('marketplace')}
-          className={`flex flex-col items-center gap-0.5 relative transition ${activeTab === 'marketplace' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
-        >
-          <div className="relative">
-            <ShoppingBag className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-pink-500 rounded-full animate-ping" />
-          </div>
-          <span className="text-[9px] font-bold">Projetos</span>
-        </button>
-
-        {/* Live Tab */}
-        <button 
-          onClick={() => { setActiveTab('live'); setIsLiveActive(true); }}
-          className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'live' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
-        >
-          <Radio className="w-6 h-6 text-rose-500 animate-pulse" />
-          <span className="text-[9px] font-medium">Live</span>
-        </button>
-
-        {/* Profile Tab */}
-        <button 
-          onClick={() => setActiveTab('profile')}
-          className={`flex flex-col items-center gap-0.5 transition ${activeTab === 'profile' ? 'text-pink-500' : 'text-neutral-400 hover:text-neutral-200'}`}
-        >
-          <User className="w-6 h-6" />
-          <span className="text-[9px] font-medium">Perfil</span>
-        </button>
-
-      </nav>
-
-    </div>
-  );
-}
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+</body>
+</html>
